@@ -3,7 +3,7 @@
 		.include "skunk.inc"
 
 ; From eeprom.s
-		.extern eeWriteBank
+		.extern eeRawWriteBank
 		.extern eeValidateChecksum
 
 ; Begin startup code.  Don't use startup.s, don't clobber the stack, and don't
@@ -13,6 +13,7 @@
 		.68000
 		.text
 start:
+		movem.l	a0/d0,-(sp)
 		bsr	skunkRESET
 		bsr	skunkNOP
 		bsr	skunkNOP
@@ -34,7 +35,7 @@ start:
 
 .gotdata:
 		lea	e2pscrch,a0		; Write scratch buffer to e2p
-		jsr	eeWriteBank
+		jsr	eeRawWriteBank
 
 		tst.w	d0			; Was there an error?
 		beq	.success
@@ -48,6 +49,7 @@ start:
 		bsr	skunkCONSOLEWRITE
 
 .done:
+		movem.l	(sp)+,a0/d0
 		rts
 
 		.data

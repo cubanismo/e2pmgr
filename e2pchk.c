@@ -1,6 +1,12 @@
 #include <stdio.h>
 #include <inttypes.h>
 
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+#define SWAP_WORD(w) (w) = (((w) << 8) | ((w) >> 8))
+#else
+#define SWAP_WORD(w) (void)(w)
+#endif
+
 int main(int argc, char *argv[])
 {
 	FILE *f;
@@ -18,6 +24,8 @@ int main(int argc, char *argv[])
 			return 1;
 		}
 
+		SWAP_WORD(w);
+
 		chksum += w;
 	}
 
@@ -28,16 +36,18 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	SWAP_WORD(w);
+
 	if (w != chksum) {
 		fprintf(stderr, "ERROR: Checksum mismatch\n");
-		fprintf(stderr, "  Calculated: 0x%04x File: 0x%04x\n",
-			chksum, w);
+		fprintf(stderr, "  Calculated: 0x%04" PRIx16
+			" File: 0x%04" PRIx16 "\n", chksum, w);
 		return 2;
 	}
 
 	fclose(f);
 
-	printf("SUCCESS: Checksum is valid\n");
+	printf("SUCCESS: Checksums match: 0x%04" PRIx16 "\n", chksum);
 
 	return 0;
 }

@@ -26,8 +26,10 @@
 
 		.globl eeWriteWord
 		.globl eeWriteBank
+		.globl eeRawWriteBank
 		.globl eeReadWord
 		.globl eeReadBank
+		.globl eeRawReadBank
 		.globl eeUpdateChecksum
 		.globl eeValidateChecksum
 
@@ -171,6 +173,43 @@ eeWriteBank:
 		rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Procedure: eeRawWriteBank
+;;;            Write 64 words to EEPROM
+;;;
+;;;  Inputs: a0.l = Pointer to data buffer containing 64 words to write
+;;;
+;;; Returns: d0.w = Non-zero indicates an error occurred
+
+eeRawWriteBank:
+		movem.l a0/d1-d2,-(sp)
+
+		clr.w	d1		; Address counter
+.loopwrite:
+		move.w	(a0)+,d0
+
+		move.w	d0,d2		; Copy it.
+
+		bsr	eewrite		; Write the word
+		bsr	eeread		; Read the word back
+
+		cmp.w	d0,d2		; Are they the same?
+		beq	.nextword
+
+		bra	.errwrite
+.nextword:
+		addq.w	#1,d1
+		cmp.w	#64,d1		; Write 64 words (0-63)
+		blt	.loopwrite
+		
+		move.w	#$0,d0
+		bra	.ewbout
+.errwrite:
+		move.w	#$1,d0	
+.ewbout:
+		movem.l	(sp)+,a0/d1-d2
+		rts
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Procedure: eeReadBank
 ;;;            Read a bank of 63 words (+ checksum) from the EEPROM.
 ;;;
@@ -204,6 +243,27 @@ eeReadBank:
 		move.w	#$1,d0	
 .eerbout:
 		movem.l	(sp)+,a0/d1-d2
+		rts
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; Procedure: eeRawReadBank
+;;;            Read a bank of 64 words from the EEPROM.
+;;;
+;;;  Inputs: a0.l = Destination buffer of write data  
+
+eeRawReadBank:
+		movem.l	a0/d0-d1,-(sp)
+
+		clr.w	d1		; Address counter
+.nextread:
+		jsr	eeread		; Read data
+		move.w	d0,(a0)+	; Store data in buffer
+		
+		addq.w	#1,d1
+		cmp.w	#64,d1
+		blt	.nextread
+		
+		movem.l	(sp)+,a0/d0-d1
 		rts
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
