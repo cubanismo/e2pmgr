@@ -4,3 +4,4 @@
 *.bin
 *.abs
 virtualjaguar.log
+/e2pchk
