@@ -14,9 +14,9 @@
 		.text
 start:
 		movem.l a0/d0,-(sp)
-		bsr	skunkRESET
-		bsr	skunkNOP
-		bsr	skunkNOP
+		jsr	skunkRESET
+		jsr	skunkNOP
+		jsr	skunkNOP
 
 		lea	e2pscrch,a0		; Read e2p to scratch buffer
 		jsr	eeRawReadBank
@@ -33,12 +33,13 @@ start:
 		lea	e2pgoodmsg,a0
 		jsr	skunkCONSOLEWRITE
 
+		jsr	skunkCONSOLECLOSE
 		movem.l (sp)+,a0/d0
 		rts
 
 		.data
 		.long
-filename:	dc.b	'eeprom.e2p'
+filename:	dc.b	'eeprom.e2p',0
 		.long
 e2pgoodmsg:	dc.b	'EEPROM content saved.',13,10,0
 

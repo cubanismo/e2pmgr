@@ -14,15 +14,15 @@
 		.text
 start:
 		movem.l	a0/d0,-(sp)
-		bsr	skunkRESET
-		bsr	skunkNOP
-		bsr	skunkNOP
+		jsr	skunkRESET
+		jsr	skunkNOP
+		jsr	skunkNOP
 
 		lea	filename,a0		; Open eeprom.e2p in read mode
 		move.l	#1,d0
 		jsr	skunkFILEOPEN
 
-		lea	e2pscrch,a0
+		lea	e2pscrch,a0		; Read file to scratch buffer
 		move.l	#128,d0
 		jsr	skunkFILEREAD
 		jsr	skunkFILECLOSE
@@ -41,20 +41,21 @@ start:
 		beq	.success
 
 		lea	e2permsg,a0		; There was! Report to console
-		bsr	skunkCONSOLEWRITE
+		jsr	skunkCONSOLEWRITE
 		bra	.done
 
 .success:
 		lea	e2pgoodmsg,a0		; No! Report success to console
-		bsr	skunkCONSOLEWRITE
+		jsr	skunkCONSOLEWRITE
 
 .done:
+		jsr	skunkCONSOLECLOSE
 		movem.l	(sp)+,a0/d0
 		rts
 
 		.data
 		.long
-filename:	dc.b	'eeprom.e2p'
+filename:	dc.b	'eeprom.e2p',0
 		.long
 fileermsg:	dc.b	'ERROR! Failed to read EEPROM data from host.',13,10,0
 		.long
