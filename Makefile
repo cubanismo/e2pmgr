@@ -1,8 +1,15 @@
+# Copyright 2020, James Jones
+# SPDX-License-Identifier: CC0-1.0
+
 include $(JAGSDK)/tools/build/jagdefs.mk
 
 OBJS =	e2pget.o \
 	e2pput.o \
 	eeprom.o
+
+# Uncomment this to build the programs in a
+# stripped-down configuration for use in jcp.
+#ASMFLAGS += -dFOR_JCP
 
 include $(JAGSDK)/jaguar/skunk/skunk.mk
 

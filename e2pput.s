@@ -1,3 +1,5 @@
+; Copyright 2020, James Jones
+; SPDX-License-Identifier: CC0-1.0
 
 		.include "jaguar.inc"
 		.include "skunk.inc"

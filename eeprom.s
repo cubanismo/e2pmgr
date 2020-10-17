@@ -3,6 +3,9 @@
 ; Copyright (c) 1994, 1995 Atari Corp.
 ; ALL RIGHTS RESERVED
 ;
+; Copyright 2020, James Jones
+; SPDX-License-Identifier: CC0-1.0
+;
 ; Project: eeprom.s - E2PROM Read & Write Functions (Non-Handshaking Version)
 ;  Module: eeprom.s - Low & High Level Read/Write Functions
 ;
@@ -17,6 +20,7 @@
 ;       14-Mar-95 - SDS: Fixed two routines to not save D0 so an
 ;                        error code is actually returned.
 ;       22-Sep-95 -  MF: Added Library identification header string
+;       21-Sep-20 -  JJ: Added raw bank read/write routines
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 		.include "jaguar.inc"	
