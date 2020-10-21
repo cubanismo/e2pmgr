@@ -7,6 +7,10 @@
 ; From eeprom.s
 		.extern eeRawWriteBank
 		.extern eeValidateChecksum
+		.extern eeInit128
+		.extern eeInit2048
+
+eeprom_size	.equ	128
 
 ; Begin startup code.  Don't use startup.s, don't clobber the stack, and don't
 ; even set up Tom/Jerry or Video.  This code is meant to run from the skunk boot
@@ -20,15 +24,21 @@ start:
 		jsr	skunkNOP
 		jsr	skunkNOP
 
+.if (eeprom_size = 2048)
+		jsr	eeInit2048
+.else
+		jsr	eeInit128
+.endif
+
 		lea	filename,a0		; Open eeprom.e2p in read mode
 		move.l	#1,d0
 		jsr	skunkFILEOPEN
 
 		lea	e2pscrch,a0		; Read file to scratch buffer
-		move.l	#128,d0
+		move.l	#eeprom_size,d0
 		jsr	skunkFILEREAD
 		jsr	skunkFILECLOSE
-		cmp.l	#128,d0
+		cmp.l	#eeprom_size,d0
 		beq	.gotdata
 
 		lea	fileermsg,a0
@@ -68,5 +78,4 @@ e2pgoodmsg:	dc.b	'EEPROM content updated.',13,10,0
 		.bss
 		.long
 
-e2pscrch:	.ds.w	64			; Working copy of eeprom content
-
+e2pscrch:	.ds.w	eeprom_size>>1	; Working copy of eeprom content

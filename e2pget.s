@@ -6,10 +6,14 @@
 
 ; From eeprom.s
 		.extern eeRawReadBank
+		.extern eeInit128
+		.extern eeInit2048
 
-; Begin startup code.  Don't use startup.s, don't clobber the stack, and don't
-; even set up Tom/Jerry or Video.  This code is meant to run from the skunk boot
-; screen only, and returns back to the skunk polling loop when done.
+eeprom_size	.equ	128
+
+; Begin startup code. Don't use startup.s, don't clobber the stack, and don't
+; even set up Tom/Jerry or Video. This code is meant to run from the skunk
+; boot screen only, and returns back to the skunk polling loop when done.
 
 		.68000
 		.text
@@ -18,6 +22,12 @@ start:
 		jsr	skunkRESET
 		jsr	skunkNOP
 		jsr	skunkNOP
+
+.if eeprom_size = 2048
+		jsr	eeInit2048
+.else
+		jsr	eeInit128
+.endif
 
 		lea	e2pscrch,a0		; Read e2p to scratch buffer
 		jsr	eeRawReadBank
@@ -29,9 +39,8 @@ start:
 		move.l	#0,d0
 		jsr	skunkFILEOPEN
 .endif
-
 		lea	e2pscrch,a0		; Write e2p content to file
-		move.l	#128,d0
+		move.l	#eeprom_size,d0
 		jsr	skunkFILEWRITE
 		jsr	skunkFILECLOSE
 
@@ -55,5 +64,5 @@ e2pgoodmsg:	dc.b	'EEPROM content saved.',13,10,0
 		.bss
 		.long
 
-e2pscrch:	.ds.w	64			; Working copy of eeprom content
+e2pscrch:	.ds.w	eeprom_size>>1	; Working copy of eeprom content
 
