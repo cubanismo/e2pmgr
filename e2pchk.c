@@ -14,39 +14,47 @@
 int main(int argc, char *argv[])
 {
 	FILE *f;
-	int i;
-	uint16_t w, chksum = 0;
+	int size = 0;
+	uint16_t w, wlast = 0, chksum = 0;
 
 	if (argc < 2 || !(f = fopen(argv[1], "rb"))) {
 		printf("usage: e2pchk <file.e2p>");
 		return 255;
 	}
 
-	for (i = 0; i < 63; i++) {
+	/* Sanity-check file size to save user from themselves */
+	while (size < 1025) {
 		if (fread(&w, sizeof(w), 1, f) != 1) {
+			if (feof(f)) {
+				break;
+			}
 			fprintf(stderr, "ERROR: Failed to read EEPROM file\n");
 			return 1;
 		}
+		chksum += wlast;
 
 		SWAP_WORD(w);
+		wlast = w;
+		size++;
+	}
 
-		chksum += w;
+	switch (size) {
+	case 64: /* fallthrough */
+	case 1024:
+		break;
+	default:
+		fprintf(stderr, "ERROR: Invalid EEPROM file size: %d%s\n",
+			size * 2, (size == 1025) ? "+" : "");
+		return 2;
 	}
 
 	chksum ^= 0xFFFF;
 
-	if (fread(&w, sizeof(w), 1, f) != 1) {
-		fprintf(stderr, "ERROR: Failed to read EEPROM file\n");
-		return 1;
-	}
-
-	SWAP_WORD(w);
-
-	if (w != chksum) {
+	if (wlast != chksum) {
 		fprintf(stderr, "ERROR: Checksum mismatch\n");
 		fprintf(stderr, "  Calculated: 0x%04" PRIx16
-			" File: 0x%04" PRIx16 "\n", chksum, w);
-		return 2;
+			" File: 0x%04" PRIx16 "\n", chksum, wlast);
+		return 3;
 	}
 
 	fclose(f);
