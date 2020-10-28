@@ -30,9 +30,13 @@ start:
 		jsr	eeInit128
 .endif
 
+.if ^^defined FOR_JCP
+		; jcp will have already opened skunk file
+.else
 		lea	filename,a0		; Open eeprom.e2p in read mode
 		move.l	#1,d0
 		jsr	skunkFILEOPEN
+.endif
 
 		lea	e2pscrch,a0		; Read file to scratch buffer
 		move.l	#eeprom_size,d0
@@ -57,8 +61,10 @@ start:
 		bra	.done
 
 .success:
-		lea	e2pgoodmsg,a0		; No! Report success to console
+.if !(^^defined FOR_JCP)
+		lea	e2pgoodmsg,a0		; No! Report success
 		jsr	skunkCONSOLEWRITE
+.endif
 
 .done:
 		jsr	skunkCONSOLECLOSE
@@ -66,14 +72,16 @@ start:
 		rts
 
 		.data
+.if !(^^defined FOR_JCP)
 		.long
 filename:	dc.b	'eeprom.e2p',0
+		.long
+e2pgoodmsg:	dc.b	'EEPROM content updated.',13,10,0
+.endif
 		.long
 fileermsg:	dc.b	'ERROR! Failed to read EEPROM data from host.',13,10,0
 		.long
 e2permsg:	dc.b	'ERROR! Failed to write EEPROM.',13,10,0
-		.long
-e2pgoodmsg:	dc.b	'EEPROM content updated.',13,10,0
 
 		.bss
 		.long
